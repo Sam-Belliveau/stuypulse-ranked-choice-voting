@@ -87,11 +87,12 @@ function runElection(ballots) {
     });
 
     // determine if there is a tie
-    const maxCount = candidates[0].count[0];
-    const minCount = candidates[candidates.length - 1].count[0];
-    if (maxCount === minCount) {
-        resultsLines.push('');
-        resultsLines.push('TIE! ');
+    const firstCandidate = candidates[0];
+    const lastCandidate = candidates[candidates.length - 1];
+    if (Candidate.compare(firstCandidate, lastCandidate) === 0) {
+        // check if all candidates are tied
+      resultsLines.push('');
+      resultsLines.push('TIE!');
       break;
     }
 
@@ -139,9 +140,9 @@ function run() {
 
 // --- UI wiring ---
 document.getElementById('runButton').addEventListener('click', (e) => {
-    run();
+  run();
 });
 
 document.getElementById('csvFileInput').addEventListener('change', () => {
-    run();
+  run();
 });
