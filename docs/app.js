@@ -65,25 +65,35 @@ function runElection(ballots) {
   let choices = new Set();
   ballots.forEach(b => b.choices.forEach(c => choices.add(c)));
 
+  const initialChoices = [...choices];
   const resultsLines = [];
 
-  while (choices.size > 0) {
+  do {
     // init candidates
     const candidates = [...choices].map(name => new Candidate(name));
+
     // tally
     ballots.forEach(b => {
       candidates.forEach(c => c.addCount(b));
     });
+
     // sort
     candidates.sort(Candidate.compare);
+
+    // get longest name length
+    const longestName = candidates.reduce((max, c) => {
+      return Math.max(max, c.name.length);
+    }, 0);
 
     // print round
     resultsLines.push('\nResults:');
     candidates.forEach((c, idx) => {
-      const voteCounts = c.count.slice(0, choices.size)
-                             .map(v => v.toString().padStart(3, ' '));
-      resultsLines.push(`${(idx + 1).toString().padStart(2, ' ')}. ${
-          c.name.padEnd(12)} | ${voteCounts.join(' ')}`);
+      const rank = (idx + 1).toString().padStart(3, ' ');
+      const name = c.name.padEnd(longestName);
+      const voteCounts = c.count.slice(0, initialChoices.size)
+                             .map(v => v.toString().padStart(3, ' '))
+                             .join(' ');
+      resultsLines.push(`${rank}. ${name} | ${voteCounts}`);
     });
 
     // determine if there is a tie
@@ -98,13 +108,14 @@ function runElection(ballots) {
     // eliminate last
     const loser = candidates[candidates.length - 1].name;
     choices.delete(loser);
+
     // discard picks for ballots that pointed to loser
     ballots.forEach(b => {
       while (b.hasPick() && !choices.has(b.getPick())) {
         b.discardPick();
       }
     });
-  }
+  } while (choices.size > 0)
 
   return resultsLines.join('\n');
 }
