@@ -65,7 +65,7 @@ function runElection(ballots) {
   let choices = new Set();
   ballots.forEach(b => b.choices.forEach(c => choices.add(c)));
 
-  const initialChoices = [...choices];
+  const totalChoices = choices.size;
   const resultsLines = [];
 
   do {
@@ -90,11 +90,18 @@ function runElection(ballots) {
     candidates.forEach((c, idx) => {
       const rank = (idx + 1).toString().padStart(3, ' ');
       const name = c.name.padEnd(longestName);
-      const voteCounts = c.count.slice(0, initialChoices.size)
+      const voteCounts = c.count.slice(0, totalChoices)
                              .map(v => v.toString().padStart(3, ' '))
                              .join(' ');
       resultsLines.push(`${rank}. ${name} | ${voteCounts}`);
     });
+
+    // check for winner
+    if (candidates.length === 1) {
+      resultsLines.push('');
+      resultsLines.push(`Winner: ${candidates[0].name}`);
+      break;
+    }
 
     // determine if there is a tie
     const firstCandidate = candidates[0];
