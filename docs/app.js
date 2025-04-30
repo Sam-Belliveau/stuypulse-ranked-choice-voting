@@ -132,3 +132,7 @@ function run() {
 document.getElementById('runButton').addEventListener('click', (e) => {
     run();
 });
+
+document.getElementById('csvFileInput').addEventListener('change', () => {
+    run();
+});
