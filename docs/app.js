@@ -48,7 +48,7 @@ class Ballot {
     const nameIdx = header.findIndex(h => h.includes("Name"));
     if (nameIdx < 0) throw new Error(`Missing "Name" column`);
   
-    // find all choice columns (headers containing "1", "2", etc. as any part of the string)
+    // find all choice columns (headers containing "1", "2", etc.)
     const choiceIdx = header
       .map((h,i) => ({h,i}))
       .filter(x => /\d+/.test(x.h))
