@@ -129,6 +129,6 @@ function run() {
 }
 
 // --- UI wiring ---
-document.getElementById('csvFileInput').addEventListener('change', () => {
+document.getElementById('runButton').addEventListener('click', (e) => {
     run();
 });
