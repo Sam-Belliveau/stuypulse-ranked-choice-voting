@@ -49,26 +49,13 @@ class Ballot {
     if (nameIdx < 0) throw new Error(`Missing "Name" column`);
   
     // find all choice columns (headers containing "1", "2", etc. as any part of the string)
-    const places = {
-        "1": 0,
-        "2": 1,
-        "3": 2,
-        "4": 3,
-        "5": 4,
-        "6": 5,
-        "7": 6,
-        "8": 7,
-        "9": 8,
-        "10": 9
-    };
-
     const choiceIdx = header
-        .map((h, i) => {
-            const place = Object.keys(places).find(p => h.includes(p));
-            return place ? i : -1;
-        })
-        .filter(i => i >= 0);
-    if (choiceIdx.length === 0) throw new Error(`Missing choice columns`);
+      .map((h,i) => ({h,i}))
+      .filter(x => /\d+/.test(x.h))
+      .map(x => x.i);
+    if (choiceIdx.length === 0) {
+      throw new Error("No choice columns found");
+    }
   
     return rows.map(r => {
       const name = r[nameIdx];
