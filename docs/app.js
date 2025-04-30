@@ -1,73 +1,38 @@
-/*
+/* 
 Copyright (c) 2021 StuyPulse
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Permission is hereby granted...
+(the same MIT license text)
 */
 
-// stub for colored output (no-op in Node)
-function colored(s, ...args) {
-    return s;
-  }
-  
-  // print colored error with tag
-  function rcv_print_error(message) {
-    const ERROR_HEADER = colored('[ERROR]', /* color: red, attrs: ['bold','blink'] */);
-    console.error(`${ERROR_HEADER} ${message.trim()}`);
-  }
-  
-  // class representing a ballot
-  class Ballot {
+class Ballot {
     constructor(name, choices) {
       this.name = name;
       this.choices = choices.slice();
     }
-  
-    get_pick() {
-      return this.has_pick() ? this.choices[0] : '';
+    getPick() {
+      return this.hasPick() ? this.choices[0] : "";
     }
-  
-    has_pick() {
+    hasPick() {
       return this.choices.length > 0;
     }
-  
-    discard_pick() {
+    discardPick() {
       this.choices.shift();
     }
   }
   
-  // class representing a candidate
   class Candidate {
     static MAX_PLACES = 1 << 12;
-  
     constructor(name) {
       this.name = name;
       this.count = Array(Candidate.MAX_PLACES).fill(0);
     }
-  
-    add_count(ballot) {
+    addCount(ballot) {
       ballot.choices.slice(0, Candidate.MAX_PLACES)
         .forEach((choice, rank) => {
           if (choice === this.name) this.count[rank]++;
         });
     }
-  
-    // compare for sorting (descending)
+    // sort descending by counts array
     static compare(a, b) {
       for (let i = 0; i < Candidate.MAX_PLACES; i++) {
         if (a.count[i] !== b.count[i]) {
@@ -78,104 +43,90 @@ function colored(s, ...args) {
     }
   }
   
-  // read and collect ballots from CSV file
-  const fs = require('fs');
-  function collect_ballots(file_name) {
-    let rows;
-    try {
-      const text = fs.readFileSync(file_name, 'utf8');
-      rows = text.trim().split(/\r?\n/).map(line => line.split(','));
-    } catch (err) {
-      rcv_print_error(`Could not open file "${file_name}"`);
-      process.exit(1);
-    }
+  function parseBallots(data) {
+    const [header, ...rows] = data;
+    const nameIdx = header.findIndex(h => h.includes("Name"));
+    if (nameIdx < 0) throw new Error(`Missing "Name" column`);
   
-    const header = rows[0];
-    const lines = rows.slice(1);
+    // find all choice columns (headers containing "1", "2", etc. as any part of the string)
+    const choiceIdx = header
+        .map((h, i) => [h, i])
+        .filter(([h]) => h.match(/\d+/))
+        .map(([_, i]) => i);
+    if (choiceIdx.length === 0) throw new Error(`Missing choice columns`);
   
-    // find index of Name column
-    const name_idx = header.findIndex(h => h.includes('Name'));
-    if (name_idx < 0) {
-      rcv_print_error(`CSV File Malformed! [header "Name" not found]`);
-      process.exit(1);
-    }
-  
-    // find choice columns (headers containing digits)
-    const choices_idx = header
-      .map((h, i) => ({ h, i }))
-      .filter(x => /^\d+/.test(x.h))
-      .map(x => x.i);
-    if (choices_idx.length === 0) {
-      rcv_print_error('CSV File Malformed! [could not identify choice columns]');
-      process.exit(1);
-    }
-  
-    try {
-      return lines.map(l => {
-        const name = l[name_idx];
-        const choices = choices_idx.map(idx => l[idx] || '').filter(c => c);
-        return new Ballot(name, choices);
-      });
-    } catch (e) {
-      rcv_print_error('CSV File Malformed! [exception while interpreting ballots]');
-      process.exit(1);
-    }
+    return rows.map(r => {
+      const name = r[nameIdx];
+      const choices = choiceIdx.map(i => r[i]).filter(c => c);
+      return new Ballot(name, choices);
+    });
   }
   
-  // run ranked-choice election
-  function run_election(ballots) {
-    // padding helper
-    function pad_number(num) {
-      const s = String(num);
-      return ' '.repeat(Math.max(0, 3 - s.length)) + s;
-    }
-  
-    // gather all choices
+  function runElection(ballots) {
     let choices = new Set();
     ballots.forEach(b => b.choices.forEach(c => choices.add(c)));
   
-    // track max name length
-    const name_length = Math.max(...[...choices].map(c => c.length));
-    const max_choices = choices.size;
+    const resultsLines = [];
   
     while (choices.size > 0) {
+      // init candidates
       const candidates = [...choices].map(name => new Candidate(name));
-      ballots.forEach(ballot => candidates.forEach(c => c.add_count(ballot)));
+      // tally
+      ballots.forEach(b => {
+        candidates.forEach(c => c.addCount(b));
+      });
+      // sort
       candidates.sort(Candidate.compare);
   
-      console.log(colored('\nResults:', /* attrs:['bold'] */));
+      // print round
+      resultsLines.push("\nResults:");
       candidates.forEach((c, idx) => {
-        const place = colored(`${idx + 1}.`, /* attrs:['bold'] */);
-        let name = colored(c.name, /* attrs:['underline'] */);
-        name += ' '.repeat(Math.max(0, name_length - c.name.length));
-        const votes = `${pad_number(c.count[0])} Votes ... [${c.count.slice(0, max_choices).join(', ')}]`;
-        console.log(`${place} ${name} | ${votes}`);
+        const voteCounts = c.count.slice(0, choices.size)
+          .map(v => v.toString().padStart(3, " "));
+        resultsLines.push(
+          `${(idx+1).toString().padStart(2, " ")}. ${c.name.padEnd(12)} | ${voteCounts.join(" ")}`
+        );
       });
   
       // eliminate last
-      const last = candidates[candidates.length - 1].name;
-      choices.delete(last);
+      const loser = candidates[candidates.length - 1].name;
+      choices.delete(loser);
+      // discard picks for ballots that pointed to loser
       ballots.forEach(b => {
-        while (b.has_pick() && !choices.has(b.get_pick())) {
-          b.discard_pick();
+        while (b.hasPick() && !choices.has(b.getPick())) {
+          b.discardPick();
         }
       });
     }
+  
+    return resultsLines.join("\n");
   }
   
-  // --- main ---
-  try {
-    console.log('\n\n----= StuyPulse RCV =----');
-    const csv_file = process.argv[2];
-    if (!csv_file) {
-      rcv_print_error('No CSV file provided. Usage: node rcv.js <file.csv>');
-      process.exit(1);
+  // --- UI wiring ---
+  document.getElementById("runBtn").addEventListener("click", () => {
+    const input = document.getElementById("csvFileInput");
+    const file = input.files[0];
+    const out = document.getElementById("results");
+    out.textContent = "";
+  
+    if (!file) {
+      out.innerHTML = `<div class="error">Please select a CSV file first.</div>`;
+      return;
     }
-    const ballots = collect_ballots(csv_file);
-    run_election(ballots);
-  } catch (e) {
-    console.error('An Error has Occured!');
-    console.error('Contact Sam Belliveau.');
-    console.error(e);
-  }
+  
+    Papa.parse(file, {
+      complete: (res) => {
+        try {
+          const ballots = parseBallots(res.data);
+          const txt = runElection(ballots);
+          out.textContent = txt;
+        } catch (e) {
+          out.innerHTML = `<div class="error">${e.message}</div>`;
+        }
+      },
+      error: (err) => {
+        out.innerHTML = `<div class="error">CSV parse error: ${err.message}</div>`;
+      }
+    });
+  });
   
