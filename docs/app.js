@@ -90,7 +90,6 @@ function runElection(ballots) {
     const firstCandidate = candidates[0];
     const lastCandidate = candidates[candidates.length - 1];
     if (Candidate.compare(firstCandidate, lastCandidate) === 0) {
-        // check if all candidates are tied
       resultsLines.push('');
       resultsLines.push('TIE!');
       break;
