@@ -90,7 +90,8 @@ function runElection(ballots) {
     const maxCount = candidates[0].count[0];
     const minCount = candidates[candidates.length - 1].count[0];
     if (maxCount === minCount) {
-      resultsLines.push('TIE!');
+        resultsLines.push('');
+        resultsLines.push('TIE! ');
       break;
     }
 
