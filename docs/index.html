@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>StuyPulse RCV</title>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    #results { white-space: pre; font-family: monospace; margin-top: 1rem; }
+    .error { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Ranked-Choice Voting</h1>
+  <input type="file" id="csvFileInput" accept=".csv" />
+  <button id="runBtn">Run Election</button>
+  <div id="results"></div>
+
+  <!-- Include PapaParse for robust CSV parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
