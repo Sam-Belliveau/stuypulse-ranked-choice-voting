@@ -68,7 +68,12 @@ function runElection(ballots) {
   const totalChoices = choices.size;
   const resultsLines = [];
 
-  do {
+  // get longest name length
+  const longestName = choices.reduce((max, c) => {
+    return Math.max(max, c.name.length);
+  }, 0);
+
+  while (choices.size > 0) {
     // init candidates
     const candidates = [...choices].map(name => new Candidate(name));
 
@@ -79,11 +84,6 @@ function runElection(ballots) {
 
     // sort
     candidates.sort(Candidate.compare);
-
-    // get longest name length
-    const longestName = candidates.reduce((max, c) => {
-      return Math.max(max, c.name.length);
-    }, 0);
 
     // print round
     resultsLines.push('\nResults:');
@@ -122,7 +122,7 @@ function runElection(ballots) {
         b.discardPick();
       }
     });
-  } while (choices.size > 0)
+  }
 
   return resultsLines.join('\n');
 }
