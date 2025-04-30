@@ -86,6 +86,14 @@ function runElection(ballots) {
           c.name.padEnd(12)} | ${voteCounts.join(' ')}`);
     });
 
+    // determine if there is a tie
+    const maxCount = candidates[0].count[0];
+    const minCount = candidates[candidates.length - 1].count[0];
+    if (maxCount === minCount) {
+      resultsLines.push('TIE!');
+      break;
+    }
+
     // eliminate last
     const loser = candidates[candidates.length - 1].name;
     choices.delete(loser);
