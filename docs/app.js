@@ -69,7 +69,7 @@ function runElection(ballots) {
   const resultsLines = [];
 
   // get longest name length
-  const longestName = choices.reduce((max, c) => {
+  const longestName = [...choices].reduce((max, c) => {
     return Math.max(max, c.name.length);
   }, 0);
 
