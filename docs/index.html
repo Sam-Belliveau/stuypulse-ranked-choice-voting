@@ -8,6 +8,16 @@
         font-family: sans-serif;
         padding: 1rem;
       }
+      /* new header styling */
+      .site-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+      .site-header img {
+        height: 48px; /* adjust as needed */
+        margin-right: 0.75rem;
+      }
       #results {
         white-space: pre;
         font-family: monospace;
@@ -20,55 +30,43 @@
     </style>
   </head>
   <body>
-    <h1>Ranked Choice Voting</h1>
+    <header class="site-header">
+      <img
+        src="https://raw.githubusercontent.com/StuyPulse/stuypulse.com/2920b68b5d27e94291ec09be21c942a94fe6eb41/public/icons/694-logo.svg"
+        alt="StuyPulse Logo"
+      />
+      <h1>StuyPulse – Ranked Choice Voting Tool</h1>
+    </header>
+
+    <h3>Step 1. Set Up Your Google Form</h3>
+    <ul>
+      <li>Add one <strong>Dropdown</strong> question per rank.</li>
+      <li>
+        Title each question with the digit of the rank, e.g.
+        <em><strong>1</strong>st Choice</em>,
+        <em><strong>2</strong>nd Choice</em>,
+        <em><strong>3</strong>rd Choice</em>...
+      </li>
+      <li>
+        Populate each dropdown’s options with the exact list of candidate names.
+      </li>
+    </ul>
+
+    <h3>Step 2. Export Ballots as CSV</h3>
+    <ol>
+      <li>In Google Forms, go to the “Responses” tab</li>
+      <li>Click the Sheets icon to open the linked spreadsheet.</li>
+      <li>
+        Click <strong>File → Download → Comma-Separated Values (.csv)</strong>.
+      </li>
+      <li>Save that CSV to your computer.</li>
+    </ol>
+
+    <h3>Step 3. Upload CSV & Run Election</h3>
+
     <input type="file" id="csvFileInput" accept=".csv" />
     <button id="runButton">Run Election</button>
     <div id="results"></div>
-
-    <!-- Instructions -->
-    <section id="instructions">
-      <h2>How to Use This Tool</h2>
-
-      <h3>1. Set Up Your Google Form</h3>
-      <ul>
-        <li>Add one <strong>Dropdown</strong> question per rank.</li>
-        <li>
-          Title each question with its rank digit, e.g. <em>1st Choice</em>,
-          <em>2nd Choice</em>, <em>3rd Choice</em>, <em>4th Choice</em>, etc.
-        </li>
-        <li>
-          Populate each dropdown’s options with the exact list of candidate
-          names.
-        </li>
-      </ul>
-
-      <h3>2. Export Ballots as CSV</h3>
-      <ol>
-        <li>
-          In Google Forms, click the “Responses” tab → click the Sheets icon to
-          open the linked spreadsheet.
-        </li>
-        <li>
-          In the spreadsheet menu:
-          <strong>File → Download → Comma-Separated Values (.csv)</strong>.
-        </li>
-        <li>Save that CSV to your computer.</li>
-      </ol>
-
-      <h3>3. Upload & Run Election</h3>
-      <ul>
-        <li>Click “Choose File” below and select your downloaded CSV.</li>
-        <li>Hit “Run Election” to see the ranked-choice results instantly.</li>
-      </ul>
-
-      <h3>What You’ll See</h3>
-      <p>
-        The results pane will display each elimination round. • All candidates
-        are listed in descending order of votes for that round. • The candidate
-        with the fewest votes is then removed, and ballots are re-allocated to
-        voters’ next preferences. • Rounds continue until one candidate remains.
-      </p>
-    </section>
 
     <!-- Include PapaParse for robust CSV parsing -->
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
