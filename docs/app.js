@@ -62,15 +62,14 @@ function parseBallots(data) {
 }
 
 function runElection(ballots) {
+  const output = [];
+  
   let choices = new Set();
   ballots.forEach(b => b.choices.forEach(c => choices.add(c)));
 
   const totalChoices = choices.size;
-  const resultsLines = [];
-
-  // get longest name length
   const longestName = [...choices].reduce((max, c) => {
-    return Math.max(max, c.size);
+    return Math.max(max, c.length);
   }, 0);
 
   while (choices.size > 0) {
@@ -86,20 +85,20 @@ function runElection(ballots) {
     candidates.sort(Candidate.compare);
 
     // print round
-    resultsLines.push('\nResults:');
+    output.push('\nResults:');
     candidates.forEach((c, idx) => {
       const rank = (idx + 1).toString().padStart(3, ' ');
       const name = c.name.padEnd(longestName);
       const voteCounts = c.count.slice(0, totalChoices)
                              .map(v => v.toString().padStart(3, ' '))
                              .join(' ');
-      resultsLines.push(`${rank}. ${name} | ${voteCounts}`);
+      output.push(`${rank}. ${name} | ${voteCounts}`);
     });
 
     // check for winner
     if (candidates.length === 1) {
-      resultsLines.push('');
-      resultsLines.push(`Winner: ${candidates[0].name}`);
+      output.push('');
+      output.push(`Winner: ${candidates[0].name}`);
       break;
     }
 
@@ -107,8 +106,8 @@ function runElection(ballots) {
     const firstCandidate = candidates[0];
     const lastCandidate = candidates[candidates.length - 1];
     if (Candidate.compare(firstCandidate, lastCandidate) === 0) {
-      resultsLines.push('');
-      resultsLines.push('TIE!');
+      output.push('');
+      output.push('TIE!');
       break;
     }
 
@@ -124,7 +123,7 @@ function runElection(ballots) {
     });
   }
 
-  return resultsLines.join('\n');
+  return output.join('\n');
 }
 
 function run() {
