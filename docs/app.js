@@ -47,16 +47,16 @@ function parseBallots(data) {
                         const digits = h.replace(/\D/g, '');
                         return {index: i, num: parseInt(digits, 10)};
                       })
-                      .filter(col => col.num !== NaN)
-                      .sort((a, b) => a.num - b.num);
+                      .filter(col => 0 < col.num)
+                      .sort((a, b) => a.num - b.num)
+                      .map(col => col.index);
 
   if (choices.length === 0) {
     throw new Error('No choice columns found');
   }
 
   return rows.map(row => {
-    const choices = choices.map(col => col.index).map(i => row[i])
-    return new Ballot(choices);
+    return new Ballot(choices.map(i => row[i]));
   });
 }
 
