@@ -5,32 +5,29 @@ Permission is hereby granted...
 */
 
 class Ballot {
-  constructor(name, choices) {
-    this.name = name;
-    this.choices = choices.slice();
+  constructor(choices) {
+    this.choices = choices.copy();
   }
-  getPick() {
-    return this.hasPick() ? this.choices[0] : '';
-  }
-  hasPick() {
-    return this.choices.length > 0;
-  }
-  discardPick() {
-    this.choices.shift();
+
+  filter(remaining) {
+    this.choices = this.choices.filter(c => remaining.has(c));
   }
 }
 
 class Candidate {
   static MAX_PLACES = 1 << 12;
+
   constructor(name) {
     this.name = name;
     this.count = Array(Candidate.MAX_PLACES).fill(0);
   }
+
   addCount(ballot) {
     ballot.choices.slice(0, Candidate.MAX_PLACES).forEach((choice, rank) => {
       if (choice === this.name) this.count[rank]++;
     });
   }
+
   // sort descending by counts array
   static compare(a, b) {
     for (let i = 0; i < Candidate.MAX_PLACES; i++) {
@@ -44,8 +41,6 @@ class Candidate {
 
 function parseBallots(data) {
   const [header, ...rows] = data;
-  const nameIdx = header.findIndex(h => h.includes('Name'));
-  if (nameIdx < 0) throw new Error(`Missing "Name" column`);
 
   // find all choice columns (headers containing "1", "2", etc.)
   const choiceIdx =
@@ -55,15 +50,14 @@ function parseBallots(data) {
   }
 
   return rows.map(r => {
-    const name = r[nameIdx];
     const choices = choiceIdx.map(i => r[i]).filter(c => c);
-    return new Ballot(name, choices);
+    return new Ballot(choices);
   });
 }
 
 function runElection(ballots) {
   const output = [];
-  
+
   let choices = new Set();
   ballots.forEach(b => b.choices.forEach(c => choices.add(c)));
 
@@ -117,9 +111,7 @@ function runElection(ballots) {
 
     // discard picks for ballots that pointed to loser
     ballots.forEach(b => {
-      while (b.hasPick() && !choices.has(b.getPick())) {
-        b.discardPick();
-      }
+      b.filter(choices);
     });
   }
 
