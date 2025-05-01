@@ -6,7 +6,7 @@ Permission is hereby granted...
 
 class Ballot {
   constructor(choices) {
-    this.choices = choices.copy();
+    this.choices = choices.slice();
   }
 
   filter(remaining) {
