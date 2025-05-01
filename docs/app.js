@@ -56,7 +56,7 @@ function parseBallots(data) {
   }
 
   return rows.map(row => {
-    return new Ballot(choices.map(i => row[i]));
+    return new Ballot(choices.map(i => row[i]).filter(c => c !== ''));
   });
 }
 
@@ -66,7 +66,6 @@ function runElection(ballots) {
   let choices = new Set();
   ballots.forEach(b => b.choices.forEach(c => choices.add(c)));
 
-  const totalChoices = choices.size;
   const longestName = [...choices].reduce((max, c) => {
     return Math.max(max, c.length);
   }, 0);
@@ -79,6 +78,10 @@ function runElection(ballots) {
     ballots.forEach(b => {
       candidates.forEach(c => c.addCount(b));
     });
+
+    const totalChoices = ballots.reduce((max, b) => {
+      return Math.max(max, b.choices.length);
+    }, 0);
 
     // sort
     candidates.sort(Candidate.compare);
