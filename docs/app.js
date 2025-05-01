@@ -42,27 +42,20 @@ class Candidate {
 function parseBallots(data) {
   const [header, ...rows] = data;
 
-  const colsWithNumbers = header
-                              .map((h, i) => {
-                                const digits = h.replace(/\D/g, '');
-                                return {
-                                  header: h,
-                                  index: i,
-                                  num: digits ? parseInt(digits, 10) : null
-                                };
-                              })
-                              .filter(col => col.num !== null)
-                              .sort((a, b) => a.num - b.num);
+  const choices = header
+                      .map((h, i) => {
+                        const digits = h.replace(/\D/g, '');
+                        return {index: i, num: parseInt(digits, 10)};
+                      })
+                      .filter(col => col.num !== NaN)
+                      .sort((a, b) => a.num - b.num);
 
-  if (colsWithNumbers.length === 0) {
+  if (choices.length === 0) {
     throw new Error('No choice columns found');
   }
 
-  const choiceIdx = colsWithNumbers.map(col => col.index);
-
   return rows.map(row => {
-    const choices =
-        choiceIdx.map(i => row[i]).filter(cell => cell);  // drop empty cells
+    const choices = choices.map(col => col.index).map(i => row[i])
     return new Ballot(choices);
   });
 }
